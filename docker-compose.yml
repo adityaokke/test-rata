@@ -1,0 +1,62 @@
+version: '3.9'
+
+# ─────────────────────────────────────────────────────────────
+#  Healthcare CRM — docker-compose
+#  Run:  docker-compose up --build
+# ─────────────────────────────────────────────────────────────
+
+networks:
+  crm-network:
+    driver: bridge
+
+volumes:
+  postgres_auth_data:
+
+services:
+
+  # ── PostgreSQL (Auth DB) ───────────────────────────────────
+  postgres-auth:
+    image: postgres:16-alpine
+    container_name: crm-postgres-auth
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_AUTH_DB:-auth_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_auth_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_AUTH_DB:-auth_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Auth Service ──────────────────────────────────────────
+  # auth-service:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: crm-auth-service
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3001
+  #     DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
+  #     JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+  #     JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+  #   depends_on:
+  #     postgres-auth:
+  #       condition: service_healthy
+  #   networks:
+  #     - crm-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:3001/.well-known/health || exit 1"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3

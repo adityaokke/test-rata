@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Auth Service — debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nest", "start", "--debug", "--watch"],
+      "cwd": "${workspaceFolder}/auth-service",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "restart": true,
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "envFile": "${workspaceFolder}/auth-service/.env",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/auth-service/node_modules/**"
+      ]
+    }
+    // {
+    //   "name": "Auth Service — attach",
+    //   "type": "node",
+    //   "request": "attach",
+    //   "port": 9229,
+    //   "restart": true,
+    //   "sourceMaps": true,
+    //   "remoteRoot": "${workspaceFolder}",
+    //   "skipFiles": [
+    //     "<node_internals>/**",
+    //     "${workspaceFolder}/node_modules/**"
+    //   ]
+    // }
+  ]
+}
