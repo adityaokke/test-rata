@@ -1,7 +1,7 @@
 version: '3.9'
 
 # ─────────────────────────────────────────────────────────────
-#  Healthcare CRM — docker-compose
+#  Healthcare CRM — full stack
 #  Run:  docker-compose up --build
 # ─────────────────────────────────────────────────────────────
 
@@ -11,20 +11,20 @@ networks:
 
 volumes:
   postgres_auth_data:
+  postgres_chat_data:
+  redis_data:
 
 services:
 
-  # ── PostgreSQL (Auth DB) ───────────────────────────────────
+  # ── PostgreSQL — Auth ──────────────────────────────────────
   postgres-auth:
     image: postgres:16-alpine
     container_name: crm-postgres-auth
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_AUTH_DB:-auth_db}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB:       ${POSTGRES_AUTH_DB:-auth_db}
     volumes:
       - postgres_auth_data:/var/lib/postgresql/data
     networks:
@@ -35,28 +35,125 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── Auth Service ──────────────────────────────────────────
-  # auth-service:
+  # ── PostgreSQL — Chat ──────────────────────────────────────
+  postgres-chat:
+    image: postgres:16-alpine
+    container_name: crm-postgres-chat
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB:       ${POSTGRES_CHAT_DB:-chat_db}
+    volumes:
+      - postgres_chat_data:/var/lib/postgresql/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_CHAT_DB:-chat_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Redis ──────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: crm-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Auth Service ───────────────────────────────────────────
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: crm-auth-service
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV:       production
+      PORT:           3001
+      DATABASE_URL:   postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
+      JWT_SECRET:     ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+    depends_on:
+      postgres-auth:
+        condition: service_healthy
+    networks:
+      - crm-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/.well-known/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # # ── Chat Service ───────────────────────────────────────────
+  # chat-service:
   #   build:
-  #     context: .
+  #     context: ./chat-service
   #     dockerfile: Dockerfile
-  #   container_name: crm-auth-service
+  #   container_name: crm-chat-service
   #   restart: unless-stopped
   #   ports:
-  #     - "3001:3001"
+  #     - "3002:3002"
   #   environment:
-  #     NODE_ENV: production
-  #     PORT: 3001
-  #     DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-auth:5432/${POSTGRES_AUTH_DB:-auth_db}
-  #     JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
-  #     JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+  #     NODE_ENV:         production
+  #     PORT:             3002
+  #     FRONTEND_URL:     ${FRONTEND_URL:-http://localhost:5173}
+  #     DATABASE_URL:     postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-chat:5432/${POSTGRES_CHAT_DB:-chat_db}
+  #     REDIS_HOST:       redis
+  #     REDIS_PORT:       6379
+  #     JWT_SECRET:       ${JWT_SECRET:-change-me-in-production}
+  #     JWT_EXPIRES_IN:   ${JWT_EXPIRES_IN:-7d}
+  #     AUTH_SERVICE_URL: http://auth-service:3001/graphql
   #   depends_on:
-  #     postgres-auth:
+  #     postgres-chat:
+  #       condition: service_healthy
+  #     redis:
+  #       condition: service_healthy
+  #     auth-service:
   #       condition: service_healthy
   #   networks:
   #     - crm-network
   #   healthcheck:
-  #     test: ["CMD-SHELL", "wget -qO- http://localhost:3001/.well-known/health || exit 1"]
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:3002/.well-known/health || exit 1"]
+  #     interval: 15s
+  #     timeout: 5s
+  #     retries: 3
+
+  # # ── Gateway ────────────────────────────────────────────────
+  # gateway:
+  #   build:
+  #     context: ./gateway
+  #     dockerfile: Dockerfile
+  #   container_name: crm-gateway
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NODE_ENV:          production
+  #     PORT:              3000
+  #     FRONTEND_URL:      ${FRONTEND_URL:-http://localhost:5173}
+  #     AUTH_SERVICE_URL:  http://auth-service:3001/graphql
+  #     CHAT_SERVICE_URL:  http://chat-service:3002/graphql
+  #   depends_on:
+  #     auth-service:
+  #       condition: service_healthy
+  #     chat-service:
+  #       condition: service_healthy
+  #   networks:
+  #     - crm-network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "wget -qO- http://localhost:3000/.well-known/health || exit 1"]
   #     interval: 15s
   #     timeout: 5s
   #     retries: 3

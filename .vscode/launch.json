@@ -2,6 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Gateway — debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nest", "start", "--debug", "--watch"],
+      "cwd": "${workspaceFolder}/gateway",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "restart": true,
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "envFile": "${workspaceFolder}/gateway/.env",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/gateway/node_modules/**"
+      ]
+    },
+    {
       "name": "Auth Service — debug",
       "type": "node",
       "request": "launch",

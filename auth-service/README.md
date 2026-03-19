@@ -107,3 +107,4 @@ prisma: https://docs.nestjs.com/recipes/prisma#set-up-prisma
 config: https://docs.nestjs.com/techniques/configuration
 graphql: https://docs.nestjs.com/graphql/quick-start
 jwt: https://docs.nestjs.com/recipes/passport#passport-authentication
+federation: https://github.com/nestjs/nest/tree/master/sample/31-graphql-federation-code-first
