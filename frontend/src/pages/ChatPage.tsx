@@ -1,14 +1,13 @@
-import { useState, useEffect, useRef, useCallback } from "react";
-import { useQuery, useMutation } from "@apollo/client/react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useMutation, useQuery } from "@apollo/client/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
-import { useAuth } from "../lib/auth-context";
 import { useChatClient } from "../App";
+import { ADD_AGENT_MUTATION, MESSAGES_QUERY, SEND_MESSAGE_MUTATION } from "../graphql/chat.queries";
 import { useChatSocket } from "../hooks/useChatSocket";
-import { MESSAGES_QUERY, SEND_MESSAGE_MUTATION } from "../graphql/chat.queries";
-import { apolloClient } from "../lib/apollo";
-import { gql } from "@apollo/client/core/index.js";
+import { useAuth } from "../lib/auth-context";
 import type { IncomingMessage } from "../lib/types/Message";
+import { NetworkStatus } from "@apollo/client";
 
 interface Message {
   id: string;
@@ -49,32 +48,60 @@ export function ChatPage() {
   const [optimistic, setOptimistic] = useState<OptimisticMessage[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
+  const [showAddAgent, setShowAddAgent] = useState(false);
+  const [agentId, setAgentId] = useState("");
 
-  // ── Fetch messages (cursor pagination) ───────────────────────
-  const { data, loading, fetchMore } = useQuery<MessagesData>(MESSAGES_QUERY, {
-    client: chatClient,
-    variables: { input: { roomId, limit: 30 } },
-    skip: !roomId,
-    fetchPolicy: "cache-and-network",
-    pollInterval: 2000,  // ← poll every 2s as fallback
-  });
-
-  // ── Send message ──────────────────────────────────────────────
-  const [sendMessage, { loading: sending }] = useMutation(SEND_MESSAGE_MUTATION, {
+  const [addAgent, { loading: addingAgent }] = useMutation(ADD_AGENT_MUTATION, {
     client: chatClient,
     onCompleted() {
-      setOptimistic([])   // ← clear optimistic after queue confirms
+      setShowAddAgent(false);
+      setAgentId("");
     },
     onError(err) {
-      console.error('Send failed:', err)
-      setOptimistic([])
+      alert(err.message);
     },
-  })
+  });
+
+  function handleAddAgent(e: React.FormEvent) {
+    e.preventDefault();
+    if (!agentId.trim()) return;
+    addAgent({ variables: { input: { roomId, agentId: agentId.trim() } } });
+  }
+
+  // ── Fetch messages (cursor pagination) ───────────────────────
+  const { data, loading, fetchMore, networkStatus } = useQuery<MessagesData>(
+    MESSAGES_QUERY,
+    {
+      client: chatClient,
+      variables: { input: { roomId, limit: 30 } },
+      skip: !roomId,
+      fetchPolicy: "cache-and-network",
+      pollInterval: 2000, // ← poll every 2s as fallback
+      notifyOnNetworkStatusChange: true, // ← required to get networkStatus updates
+    },
+  );
+
+  const isInitialLoading = loading && networkStatus === NetworkStatus.loading;
+
+  // ── Send message ──────────────────────────────────────────────
+  const [sendMessage, { loading: sending }] = useMutation(
+    SEND_MESSAGE_MUTATION,
+    {
+      client: chatClient,
+      onCompleted() {
+        setOptimistic([]); // ← clear optimistic after queue confirms
+      },
+      onError(err) {
+        console.error("Send failed:", err);
+        setOptimistic([]);
+      },
+    },
+  );
 
   // ── Real-time: receive messages via WebSocket ─────────────────
   const handleIncoming = useCallback((_msg: IncomingMessage) => {
-    setOptimistic([])     // ← clear all optimistic on any incoming
-  }, [])
+    setOptimistic([]); // ← clear all optimistic on any incoming
+  }, []);
 
   useChatSocket({
     roomId: roomId ?? "",
@@ -191,7 +218,55 @@ export function ChatPage() {
             {roomId?.slice(0, 12)}…
           </p>
         </div>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            onClick={() => setShowAddAgent(true)}
+            className="text-xs border border-zinc-700 text-ink-muted px-3 py-1.5 rounded-lg hover:border-zinc-600 hover:text-ink transition-colors"
+          >
+            + Add Agent
+          </button>
+        </div>
       </header>
+
+      {/* Add Agent modal */}
+      {showAddAgent && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+          <div className="card p-6 w-full max-w-sm animate-fade-up">
+            <h3 className="text-sm font-medium text-ink mb-1">Add an agent</h3>
+            <p className="text-xs text-ink-muted mb-4">
+              Paste the user ID of the agent you want to add
+            </p>
+            <form onSubmit={handleAddAgent} className="flex flex-col gap-3">
+              <input
+                className="input-base"
+                placeholder="Paste agent user ID…"
+                value={agentId}
+                onChange={(e) => setAgentId(e.target.value)}
+                autoFocus
+              />
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowAddAgent(false);
+                    setAgentId("");
+                  }}
+                  className="flex-1 border border-zinc-700 text-ink-muted rounded-xl py-2.5 text-sm hover:border-zinc-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={!agentId.trim() || addingAgent}
+                  className="flex-1 bg-accent text-surface rounded-xl py-2.5 text-sm font-medium hover:bg-accent-dim transition-colors disabled:opacity-40"
+                >
+                  {addingAgent ? "Adding…" : "Add agent"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div
@@ -209,7 +284,7 @@ export function ChatPage() {
           </div>
         )}
 
-        {loading && allMessages.length === 0 && (
+        {isInitialLoading && allMessages.length === 0 && (
           <div className="flex flex-col gap-2">
             {[...Array(5)].map((_, i) => (
               <div

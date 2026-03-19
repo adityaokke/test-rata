@@ -4,9 +4,14 @@ export const MY_ROOMS_QUERY = gql`
   query MyRooms {
     myRooms {
       id
-      participantA
-      participantB
+      customerId
       updatedAt
+      participants {
+        id
+        userId
+        role
+        joinedAt
+      }
     }
   }
 `
@@ -15,8 +20,12 @@ export const FIND_OR_CREATE_ROOM_MUTATION = gql`
   mutation FindOrCreateRoom($otherUserId: String!) {
     findOrCreateRoom(otherUserId: $otherUserId) {
       id
-      participantA
-      participantB
+      customerId
+      participants {
+        id
+        userId
+        role
+      }
     }
   }
 `
@@ -47,6 +56,17 @@ export const SEND_MESSAGE_MUTATION = gql`
       queued
       idempotencyKey
       sequenceNumber
+    }
+  }
+`
+
+export const ADD_AGENT_MUTATION = gql`
+  mutation AddAgent($input: AddAgentInput!) {
+    addAgent(input: $input) {
+      id
+      userId
+      role
+      joinedAt
     }
   }
 `

@@ -385,6 +385,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 
 export const ModelName = {
   ChatRoom: 'ChatRoom',
+  RoomParticipant: 'RoomParticipant',
   Message: 'Message'
 } as const
 
@@ -401,7 +402,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "chatRoom" | "message"
+    modelProps: "chatRoom" | "roomParticipant" | "message"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -476,6 +477,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ChatRoomCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ChatRoomCountAggregateOutputType> | number
+        }
+      }
+    }
+    RoomParticipant: {
+      payload: Prisma.$RoomParticipantPayload<ExtArgs>
+      fields: Prisma.RoomParticipantFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.RoomParticipantFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.RoomParticipantFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>
+        }
+        findFirst: {
+          args: Prisma.RoomParticipantFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.RoomParticipantFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>
+        }
+        findMany: {
+          args: Prisma.RoomParticipantFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>[]
+        }
+        create: {
+          args: Prisma.RoomParticipantCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>
+        }
+        createMany: {
+          args: Prisma.RoomParticipantCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.RoomParticipantCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>[]
+        }
+        delete: {
+          args: Prisma.RoomParticipantDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>
+        }
+        update: {
+          args: Prisma.RoomParticipantUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>
+        }
+        deleteMany: {
+          args: Prisma.RoomParticipantDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.RoomParticipantUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.RoomParticipantUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>[]
+        }
+        upsert: {
+          args: Prisma.RoomParticipantUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$RoomParticipantPayload>
+        }
+        aggregate: {
+          args: Prisma.RoomParticipantAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateRoomParticipant>
+        }
+        groupBy: {
+          args: Prisma.RoomParticipantGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoomParticipantGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.RoomParticipantCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.RoomParticipantCountAggregateOutputType> | number
         }
       }
     }
@@ -594,13 +669,23 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 
 export const ChatRoomScalarFieldEnum = {
   id: 'id',
-  participantA: 'participantA',
-  participantB: 'participantB',
+  customerId: 'customerId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type ChatRoomScalarFieldEnum = (typeof ChatRoomScalarFieldEnum)[keyof typeof ChatRoomScalarFieldEnum]
+
+
+export const RoomParticipantScalarFieldEnum = {
+  id: 'id',
+  roomId: 'roomId',
+  userId: 'userId',
+  role: 'role',
+  joinedAt: 'joinedAt'
+} as const
+
+export type RoomParticipantScalarFieldEnum = (typeof RoomParticipantScalarFieldEnum)[keyof typeof RoomParticipantScalarFieldEnum]
 
 
 export const MessageScalarFieldEnum = {
@@ -674,6 +759,20 @@ export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel
  * Reference to a field of type 'DateTime[]'
  */
 export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ParticipantRole'
+ */
+export type EnumParticipantRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParticipantRole'>
+    
+
+
+/**
+ * Reference to a field of type 'ParticipantRole[]'
+ */
+export type ListEnumParticipantRoleFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ParticipantRole[]'>
     
 
 
@@ -828,6 +927,7 @@ export type PrismaClientOptions = ({
 }
 export type GlobalOmitConfig = {
   chatRoom?: Prisma.ChatRoomOmit
+  roomParticipant?: Prisma.RoomParticipantOmit
   message?: Prisma.MessageOmit
 }
 

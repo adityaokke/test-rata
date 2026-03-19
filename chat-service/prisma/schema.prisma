@@ -1,12 +1,7 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
 generator client {
-  provider        = "prisma-client"
-  output          = "../src/generated/prisma"
-  moduleFormat    = "cjs"
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -14,27 +9,42 @@ datasource db {
 }
 
 // ── Chat Rooms ─────────────────────────────────────────────────────────────
-// A room represents a 1-on-1 conversation between two users (DM style).
-// participantA / participantB are always stored in sorted order (a < b)
-// so we can enforce a unique constraint and prevent duplicate rooms.
+// A room represents a customer support conversation.
+// Multiple agents can join the same room (multi-agent per customer).
 
 model ChatRoom {
-  id           String    @id @default(uuid())
-  participantA String    // user id — always the lexicographically smaller id
-  participantB String    // user id — always the lexicographically larger id
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  id         String   @id @default(uuid())
+  customerId String // the customer this room belongs to
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
+  participants RoomParticipant[]
   messages     Message[]
 
-  // Prevent two users from having more than one room
-  @@unique([participantA, participantB])
-
-  // Fast lookup: "give me all rooms this user is in"
-  @@index([participantA])
-  @@index([participantB])
-
+  // Fast lookup: all rooms for a customer
+  @@index([customerId])
   @@map("chat_rooms")
+}
+
+// ── Room Participants ──────────────────────────────────────────────────────
+// Tracks which users are in a room and their role.
+// A customer has exactly one participant row per room.
+// Agents/supervisors can be added at any time.
+
+model RoomParticipant {
+  id       String          @id @default(uuid())
+  roomId   String
+  userId   String
+  role     ParticipantRole @default(AGENT)
+  joinedAt DateTime        @default(now())
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  // A user can only be in a room once
+  @@unique([roomId, userId])
+  // Fast lookup: all rooms a user participates in
+  @@index([userId])
+  @@map("room_participants")
 }
 
 // ── Messages ───────────────────────────────────────────────────────────────
@@ -42,29 +52,28 @@ model ChatRoom {
 // Flow: API → BullMQ queue → worker → this table.
 
 model Message {
-  id              String    @id @default(uuid())
-  roomId          String
-  senderId        String
-  content         String?   // nullable when message is attachment-only
-  attachmentUrl   String?
-  attachmentType  AttachmentType?
-  sequenceNumber  Int       // monotonically increasing per room, assigned at publish time
-  idempotencyKey  String    // client-generated UUID to prevent duplicate inserts
-  status          MessageStatus @default(PENDING)
-  createdAt       DateTime  @default(now())
+  id             String          @id @default(uuid())
+  roomId         String
+  senderId       String
+  content        String?
+  attachmentUrl  String?
+  attachmentType AttachmentType?
+  sequenceNumber Int
+  idempotencyKey String
+  status         MessageStatus   @default(PENDING)
+  createdAt      DateTime        @default(now())
 
-  room  ChatRoom  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
-  // Primary query pattern: fetch messages for a room ordered by sequence
-  @@index([roomId, sequenceNumber])
-
-  // Secondary: cursor-based pagination by time
-  @@index([roomId, createdAt])
-
-  // Idempotency: same client key in same room = duplicate, reject it
   @@unique([roomId, idempotencyKey])
-
+  @@index([roomId, sequenceNumber])
+  @@index([roomId, createdAt])
   @@map("messages")
+}
+
+enum ParticipantRole {
+  CUSTOMER
+  AGENT
 }
 
 enum AttachmentType {
@@ -74,7 +83,7 @@ enum AttachmentType {
 }
 
 enum MessageStatus {
-  PENDING     // published to queue, not yet persisted
-  DELIVERED   // persisted to DB
-  FAILED      // moved to DLQ after max retries
+  PENDING
+  DELIVERED
+  FAILED
 }

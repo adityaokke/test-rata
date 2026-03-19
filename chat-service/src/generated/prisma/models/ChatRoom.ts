@@ -26,24 +26,21 @@ export type AggregateChatRoom = {
 
 export type ChatRoomMinAggregateOutputType = {
   id: string | null
-  participantA: string | null
-  participantB: string | null
+  customerId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type ChatRoomMaxAggregateOutputType = {
   id: string | null
-  participantA: string | null
-  participantB: string | null
+  customerId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
 
 export type ChatRoomCountAggregateOutputType = {
   id: number
-  participantA: number
-  participantB: number
+  customerId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -52,24 +49,21 @@ export type ChatRoomCountAggregateOutputType = {
 
 export type ChatRoomMinAggregateInputType = {
   id?: true
-  participantA?: true
-  participantB?: true
+  customerId?: true
   createdAt?: true
   updatedAt?: true
 }
 
 export type ChatRoomMaxAggregateInputType = {
   id?: true
-  participantA?: true
-  participantB?: true
+  customerId?: true
   createdAt?: true
   updatedAt?: true
 }
 
 export type ChatRoomCountAggregateInputType = {
   id?: true
-  participantA?: true
-  participantB?: true
+  customerId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -149,8 +143,7 @@ export type ChatRoomGroupByArgs<ExtArgs extends runtime.Types.Extensions.Interna
 
 export type ChatRoomGroupByOutputType = {
   id: string
-  participantA: string
-  participantB: string
+  customerId: string
   createdAt: Date
   updatedAt: Date
   _count: ChatRoomCountAggregateOutputType | null
@@ -178,39 +171,37 @@ export type ChatRoomWhereInput = {
   OR?: Prisma.ChatRoomWhereInput[]
   NOT?: Prisma.ChatRoomWhereInput | Prisma.ChatRoomWhereInput[]
   id?: Prisma.StringFilter<"ChatRoom"> | string
-  participantA?: Prisma.StringFilter<"ChatRoom"> | string
-  participantB?: Prisma.StringFilter<"ChatRoom"> | string
+  customerId?: Prisma.StringFilter<"ChatRoom"> | string
   createdAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
+  participants?: Prisma.RoomParticipantListRelationFilter
   messages?: Prisma.MessageListRelationFilter
 }
 
 export type ChatRoomOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  participantA?: Prisma.SortOrder
-  participantB?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  participants?: Prisma.RoomParticipantOrderByRelationAggregateInput
   messages?: Prisma.MessageOrderByRelationAggregateInput
 }
 
 export type ChatRoomWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  participantA_participantB?: Prisma.ChatRoomParticipantAParticipantBCompoundUniqueInput
   AND?: Prisma.ChatRoomWhereInput | Prisma.ChatRoomWhereInput[]
   OR?: Prisma.ChatRoomWhereInput[]
   NOT?: Prisma.ChatRoomWhereInput | Prisma.ChatRoomWhereInput[]
-  participantA?: Prisma.StringFilter<"ChatRoom"> | string
-  participantB?: Prisma.StringFilter<"ChatRoom"> | string
+  customerId?: Prisma.StringFilter<"ChatRoom"> | string
   createdAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ChatRoom"> | Date | string
+  participants?: Prisma.RoomParticipantListRelationFilter
   messages?: Prisma.MessageListRelationFilter
-}, "id" | "participantA_participantB">
+}, "id">
 
 export type ChatRoomOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  participantA?: Prisma.SortOrder
-  participantB?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ChatRoomCountOrderByAggregateInput
@@ -223,97 +214,85 @@ export type ChatRoomScalarWhereWithAggregatesInput = {
   OR?: Prisma.ChatRoomScalarWhereWithAggregatesInput[]
   NOT?: Prisma.ChatRoomScalarWhereWithAggregatesInput | Prisma.ChatRoomScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"ChatRoom"> | string
-  participantA?: Prisma.StringWithAggregatesFilter<"ChatRoom"> | string
-  participantB?: Prisma.StringWithAggregatesFilter<"ChatRoom"> | string
+  customerId?: Prisma.StringWithAggregatesFilter<"ChatRoom"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ChatRoom"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ChatRoom"> | Date | string
 }
 
 export type ChatRoomCreateInput = {
   id?: string
-  participantA: string
-  participantB: string
+  customerId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  participants?: Prisma.RoomParticipantCreateNestedManyWithoutRoomInput
   messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomUncheckedCreateInput = {
   id?: string
-  participantA: string
-  participantB: string
+  customerId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  participants?: Prisma.RoomParticipantUncheckedCreateNestedManyWithoutRoomInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  participantA?: Prisma.StringFieldUpdateOperationsInput | string
-  participantB?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participants?: Prisma.RoomParticipantUpdateManyWithoutRoomNestedInput
   messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  participantA?: Prisma.StringFieldUpdateOperationsInput | string
-  participantB?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participants?: Prisma.RoomParticipantUncheckedUpdateManyWithoutRoomNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutRoomNestedInput
 }
 
 export type ChatRoomCreateManyInput = {
   id?: string
-  participantA: string
-  participantB: string
+  customerId: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
 export type ChatRoomUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  participantA?: Prisma.StringFieldUpdateOperationsInput | string
-  participantB?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 export type ChatRoomUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  participantA?: Prisma.StringFieldUpdateOperationsInput | string
-  participantB?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type ChatRoomParticipantAParticipantBCompoundUniqueInput = {
-  participantA: string
-  participantB: string
-}
-
 export type ChatRoomCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  participantA?: Prisma.SortOrder
-  participantB?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type ChatRoomMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  participantA?: Prisma.SortOrder
-  participantB?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
 
 export type ChatRoomMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  participantA?: Prisma.SortOrder
-  participantB?: Prisma.SortOrder
+  customerId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -331,6 +310,20 @@ export type DateTimeFieldUpdateOperationsInput = {
   set?: Date | string
 }
 
+export type ChatRoomCreateNestedOneWithoutParticipantsInput = {
+  create?: Prisma.XOR<Prisma.ChatRoomCreateWithoutParticipantsInput, Prisma.ChatRoomUncheckedCreateWithoutParticipantsInput>
+  connectOrCreate?: Prisma.ChatRoomCreateOrConnectWithoutParticipantsInput
+  connect?: Prisma.ChatRoomWhereUniqueInput
+}
+
+export type ChatRoomUpdateOneRequiredWithoutParticipantsNestedInput = {
+  create?: Prisma.XOR<Prisma.ChatRoomCreateWithoutParticipantsInput, Prisma.ChatRoomUncheckedCreateWithoutParticipantsInput>
+  connectOrCreate?: Prisma.ChatRoomCreateOrConnectWithoutParticipantsInput
+  upsert?: Prisma.ChatRoomUpsertWithoutParticipantsInput
+  connect?: Prisma.ChatRoomWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ChatRoomUpdateToOneWithWhereWithoutParticipantsInput, Prisma.ChatRoomUpdateWithoutParticipantsInput>, Prisma.ChatRoomUncheckedUpdateWithoutParticipantsInput>
+}
+
 export type ChatRoomCreateNestedOneWithoutMessagesInput = {
   create?: Prisma.XOR<Prisma.ChatRoomCreateWithoutMessagesInput, Prisma.ChatRoomUncheckedCreateWithoutMessagesInput>
   connectOrCreate?: Prisma.ChatRoomCreateOrConnectWithoutMessagesInput
@@ -345,20 +338,68 @@ export type ChatRoomUpdateOneRequiredWithoutMessagesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ChatRoomUpdateToOneWithWhereWithoutMessagesInput, Prisma.ChatRoomUpdateWithoutMessagesInput>, Prisma.ChatRoomUncheckedUpdateWithoutMessagesInput>
 }
 
-export type ChatRoomCreateWithoutMessagesInput = {
+export type ChatRoomCreateWithoutParticipantsInput = {
   id?: string
-  participantA: string
-  participantB: string
+  customerId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  messages?: Prisma.MessageCreateNestedManyWithoutRoomInput
+}
+
+export type ChatRoomUncheckedCreateWithoutParticipantsInput = {
+  id?: string
+  customerId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutRoomInput
+}
+
+export type ChatRoomCreateOrConnectWithoutParticipantsInput = {
+  where: Prisma.ChatRoomWhereUniqueInput
+  create: Prisma.XOR<Prisma.ChatRoomCreateWithoutParticipantsInput, Prisma.ChatRoomUncheckedCreateWithoutParticipantsInput>
+}
+
+export type ChatRoomUpsertWithoutParticipantsInput = {
+  update: Prisma.XOR<Prisma.ChatRoomUpdateWithoutParticipantsInput, Prisma.ChatRoomUncheckedUpdateWithoutParticipantsInput>
+  create: Prisma.XOR<Prisma.ChatRoomCreateWithoutParticipantsInput, Prisma.ChatRoomUncheckedCreateWithoutParticipantsInput>
+  where?: Prisma.ChatRoomWhereInput
+}
+
+export type ChatRoomUpdateToOneWithWhereWithoutParticipantsInput = {
+  where?: Prisma.ChatRoomWhereInput
+  data: Prisma.XOR<Prisma.ChatRoomUpdateWithoutParticipantsInput, Prisma.ChatRoomUncheckedUpdateWithoutParticipantsInput>
+}
+
+export type ChatRoomUpdateWithoutParticipantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  messages?: Prisma.MessageUpdateManyWithoutRoomNestedInput
+}
+
+export type ChatRoomUncheckedUpdateWithoutParticipantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutRoomNestedInput
+}
+
+export type ChatRoomCreateWithoutMessagesInput = {
+  id?: string
+  customerId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  participants?: Prisma.RoomParticipantCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomUncheckedCreateWithoutMessagesInput = {
   id?: string
-  participantA: string
-  participantB: string
+  customerId: string
   createdAt?: Date | string
   updatedAt?: Date | string
+  participants?: Prisma.RoomParticipantUncheckedCreateNestedManyWithoutRoomInput
 }
 
 export type ChatRoomCreateOrConnectWithoutMessagesInput = {
@@ -379,18 +420,18 @@ export type ChatRoomUpdateToOneWithWhereWithoutMessagesInput = {
 
 export type ChatRoomUpdateWithoutMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  participantA?: Prisma.StringFieldUpdateOperationsInput | string
-  participantB?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participants?: Prisma.RoomParticipantUpdateManyWithoutRoomNestedInput
 }
 
 export type ChatRoomUncheckedUpdateWithoutMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  participantA?: Prisma.StringFieldUpdateOperationsInput | string
-  participantB?: Prisma.StringFieldUpdateOperationsInput | string
+  customerId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  participants?: Prisma.RoomParticipantUncheckedUpdateManyWithoutRoomNestedInput
 }
 
 
@@ -399,10 +440,12 @@ export type ChatRoomUncheckedUpdateWithoutMessagesInput = {
  */
 
 export type ChatRoomCountOutputType = {
+  participants: number
   messages: number
 }
 
 export type ChatRoomCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  participants?: boolean | ChatRoomCountOutputTypeCountParticipantsArgs
   messages?: boolean | ChatRoomCountOutputTypeCountMessagesArgs
 }
 
@@ -419,6 +462,13 @@ export type ChatRoomCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Ext
 /**
  * ChatRoomCountOutputType without action
  */
+export type ChatRoomCountOutputTypeCountParticipantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RoomParticipantWhereInput
+}
+
+/**
+ * ChatRoomCountOutputType without action
+ */
 export type ChatRoomCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MessageWhereInput
 }
@@ -426,40 +476,38 @@ export type ChatRoomCountOutputTypeCountMessagesArgs<ExtArgs extends runtime.Typ
 
 export type ChatRoomSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  participantA?: boolean
-  participantB?: boolean
+  customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  participants?: boolean | Prisma.ChatRoom$participantsArgs<ExtArgs>
   messages?: boolean | Prisma.ChatRoom$messagesArgs<ExtArgs>
   _count?: boolean | Prisma.ChatRoomCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["chatRoom"]>
 
 export type ChatRoomSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  participantA?: boolean
-  participantB?: boolean
+  customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["chatRoom"]>
 
 export type ChatRoomSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  participantA?: boolean
-  participantB?: boolean
+  customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["chatRoom"]>
 
 export type ChatRoomSelectScalar = {
   id?: boolean
-  participantA?: boolean
-  participantB?: boolean
+  customerId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ChatRoomOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "participantA" | "participantB" | "createdAt" | "updatedAt", ExtArgs["result"]["chatRoom"]>
+export type ChatRoomOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "customerId" | "createdAt" | "updatedAt", ExtArgs["result"]["chatRoom"]>
 export type ChatRoomInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  participants?: boolean | Prisma.ChatRoom$participantsArgs<ExtArgs>
   messages?: boolean | Prisma.ChatRoom$messagesArgs<ExtArgs>
   _count?: boolean | Prisma.ChatRoomCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -469,12 +517,12 @@ export type ChatRoomIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Ext
 export type $ChatRoomPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ChatRoom"
   objects: {
+    participants: Prisma.$RoomParticipantPayload<ExtArgs>[]
     messages: Prisma.$MessagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    participantA: string
-    participantB: string
+    customerId: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["chatRoom"]>
@@ -871,6 +919,7 @@ readonly fields: ChatRoomFieldRefs;
  */
 export interface Prisma__ChatRoomClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  participants<T extends Prisma.ChatRoom$participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RoomParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   messages<T extends Prisma.ChatRoom$messagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ChatRoom$messagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -902,8 +951,7 @@ export interface Prisma__ChatRoomClient<T, Null = never, ExtArgs extends runtime
  */
 export interface ChatRoomFieldRefs {
   readonly id: Prisma.FieldRef<"ChatRoom", 'String'>
-  readonly participantA: Prisma.FieldRef<"ChatRoom", 'String'>
-  readonly participantB: Prisma.FieldRef<"ChatRoom", 'String'>
+  readonly customerId: Prisma.FieldRef<"ChatRoom", 'String'>
   readonly createdAt: Prisma.FieldRef<"ChatRoom", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ChatRoom", 'DateTime'>
 }
@@ -1296,6 +1344,30 @@ export type ChatRoomDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Inte
    * Limit how many ChatRooms to delete.
    */
   limit?: number
+}
+
+/**
+ * ChatRoom.participants
+ */
+export type ChatRoom$participantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the RoomParticipant
+   */
+  select?: Prisma.RoomParticipantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the RoomParticipant
+   */
+  omit?: Prisma.RoomParticipantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.RoomParticipantInclude<ExtArgs> | null
+  where?: Prisma.RoomParticipantWhereInput
+  orderBy?: Prisma.RoomParticipantOrderByWithRelationInput | Prisma.RoomParticipantOrderByWithRelationInput[]
+  cursor?: Prisma.RoomParticipantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.RoomParticipantScalarFieldEnum | Prisma.RoomParticipantScalarFieldEnum[]
 }
 
 /**

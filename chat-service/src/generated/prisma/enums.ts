@@ -9,6 +9,14 @@
 * 🟢 You can import this file directly.
 */
 
+export const ParticipantRole = {
+  CUSTOMER: 'CUSTOMER',
+  AGENT: 'AGENT'
+} as const
+
+export type ParticipantRole = (typeof ParticipantRole)[keyof typeof ParticipantRole]
+
+
 export const AttachmentType = {
   IMAGE: 'IMAGE',
   VIDEO: 'VIDEO',

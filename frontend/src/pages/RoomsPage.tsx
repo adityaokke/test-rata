@@ -3,15 +3,23 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../lib/auth-context";
 import { useChatClient } from "../App";
 import {
+  ADD_AGENT_MUTATION,
   FIND_OR_CREATE_ROOM_MUTATION,
   MY_ROOMS_QUERY,
 } from "../graphql/chat.queries";
 import { useState } from "react";
 
+interface RoomParticipant {
+  id: string;
+  userId: string;
+  role: "CUSTOMER" | "AGENT";
+  joinedAt: string;
+}
+
 interface ChatRoom {
   id: string;
-  participantA: string;
-  participantB: string;
+  customerId: string;
+  participants: RoomParticipant[];
   updatedAt: string;
 }
 
@@ -21,6 +29,10 @@ interface MyRoomsData {
 
 interface FindOrCreateRoomResult {
   findOrCreateRoom: { id: string };
+}
+
+interface AddAgentResult {
+  addAgent: { id: string; userId: string; role: string };
 }
 
 export function RoomsPage() {
@@ -39,6 +51,8 @@ export function RoomsPage() {
     useMutation<FindOrCreateRoomResult>(FIND_OR_CREATE_ROOM_MUTATION, {
       client: chatClient,
       onCompleted(data) {
+        setShowNewChat(false);
+        setOtherUserId("");
         navigate(`/rooms/${data.findOrCreateRoom.id}`);
       },
       onError(err) {
@@ -49,7 +63,7 @@ export function RoomsPage() {
   function handleStartChat(e: React.FormEvent) {
     e.preventDefault();
     if (!otherUserId.trim()) return;
-    findOrCreateRoom({ variables: { otherUserId: otherUserId.trim() } });
+    findOrCreateRoom({ variables: { otherUserId: otherUserId.trim() } })
   }
 
   function handleLogout() {
@@ -57,10 +71,9 @@ export function RoomsPage() {
     navigate("/login");
   }
 
-  function getOtherParticipant(room: ChatRoom) {
-    return room.participantA === user?.id
-      ? room.participantB
-      : room.participantA;
+  // Get the other participants (excluding current user)
+  function getOtherParticipants(room: ChatRoom): RoomParticipant[] {
+    return room.participants.filter((p) => p.userId !== user?.id);
   }
 
   function formatTime(iso: string) {
@@ -100,13 +113,13 @@ export function RoomsPage() {
       {showNewChat && (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <div className="card p-6 w-full max-w-sm animate-fade-up">
-            <h3 className="text-sm font-medium text-ink mb-4">
+            <h3 className="text-sm font-medium text-ink mb-1">
               Start a new conversation
             </h3>
             <form onSubmit={handleStartChat} className="flex flex-col gap-3">
               <input
                 className="input-base"
-                placeholder="Paste user ID…"
+                placeholder="Paste other user ID…"
                 value={otherUserId}
                 onChange={(e) => setOtherUserId(e.target.value)}
                 autoFocus
@@ -131,7 +144,6 @@ export function RoomsPage() {
                 </button>
               </div>
             </form>
-            {/* Helper — show current user's ID so they can share it */}
             <p className="text-xs text-ink-faint mt-4 font-mono break-all">
               Your ID: {user?.id}
             </p>
@@ -197,32 +209,64 @@ export function RoomsPage() {
 
         {/* Room list */}
         {data?.myRooms.map((room) => {
-          const other = getOtherParticipant(room);
-          const initials = other.slice(0, 2).toUpperCase();
+          const others = getOtherParticipants(room);
+          const primary = others[0];
+          const initials = primary
+            ? primary.userId.slice(0, 2).toUpperCase()
+            : "??";
+
           return (
             <button
               key={room.id}
               onClick={() => navigate(`/rooms/${room.id}`)}
               className="card p-4 flex items-center gap-3 hover:border-zinc-700 hover:bg-surface-overlay transition-all duration-150 text-left w-full mb-1 animate-fade-up"
             >
-              <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center shrink-0">
-                <span className="text-xs font-medium text-accent font-mono">
-                  {initials}
-                </span>
+              {/* Avatar */}
+              <div className="relative shrink-0">
+                <div className="w-10 h-10 rounded-full bg-accent/10 border border-accent/20 flex items-center justify-center">
+                  <span className="text-xs font-medium text-accent font-mono">
+                    {initials}
+                  </span>
+                </div>
+                {/* Badge showing extra agents */}
+                {others.length > 1 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent text-surface text-[9px] font-mono flex items-center justify-center">
+                    {others.length}
+                  </span>
+                )}
               </div>
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
                   <p className="text-sm font-medium text-ink truncate font-mono">
-                    {other.slice(0, 8)}…
+                    {primary
+                      ? `${primary.userId.slice(0, 8)}…`
+                      : room.id.slice(0, 8)}
                   </p>
                   <span className="text-xs text-ink-faint shrink-0">
                     {formatTime(room.updatedAt)}
                   </span>
                 </div>
-                <p className="text-xs text-ink-muted mt-0.5">
-                  Click to open conversation
-                </p>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-xs text-ink-muted">
+                    {others.length} participant{others.length !== 1 ? "s" : ""}
+                  </span>
+                  {/* Role badges */}
+                  {others.map((p) => (
+                    <span
+                      key={p.id}
+                      className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                        p.role === "CUSTOMER"
+                          ? "bg-blue-950/50 text-blue-400"
+                          : "bg-accent/10 text-accent"
+                      }`}
+                    >
+                      {p.role.toLowerCase()}
+                    </span>
+                  ))}
+                </div>
               </div>
+
               <svg
                 className="w-4 h-4 text-ink-faint shrink-0"
                 fill="none"
