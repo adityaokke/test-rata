@@ -40,6 +40,26 @@
         "<node_internals>/**",
         "${workspaceFolder}/auth-service/node_modules/**"
       ]
+    },
+    {
+      "name": "Chat Service — debug",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["nest", "start", "--debug", "--watch"],
+      "cwd": "${workspaceFolder}/chat-service",
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "sourceMaps": true,
+      "restart": true,
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "envFile": "${workspaceFolder}/chat-service/.env",
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/chat-service/node_modules/**"
+      ]
     }
     // {
     //   "name": "Auth Service — attach",

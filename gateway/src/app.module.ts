@@ -49,10 +49,10 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
                 name: 'auth',
                 url:  config.get<string>('services.auth'),
               },
-              // {
-              //   name: 'chat',
-              //   url:  config.get<string>('services.chat'),
-              // },
+              {
+                name: 'chat',
+                url:  config.get<string>('services.chat'),
+              },
             ],
           }),
           // Use our custom datasource that forwards the auth header
