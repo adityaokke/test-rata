@@ -23,6 +23,7 @@ import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace
       autoSchemaFile: {
         federation: 2,
       },
+      context: ({ req }: { req: Request }) => ({ req }),
       plugins: [ApolloServerPluginInlineTrace()],
     }),
     // GraphQLModule.forRootAsync<ApolloDriverConfig>({

@@ -38,7 +38,11 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
           // Forward incoming request to datasource context
           context: ({ req }: { req: Request }) => ({ req }),
           graphiql: config.get<string>('nodeEnv') !== 'production',
-          cors: true,
+          // cors: {
+          //   // origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+          //   origin: config.get<string>('frontendUrl'),
+          //   credentials: true,
+          // },
         },
         gateway: {
           // IntrospectAndCompose fetches each subgraph's schema at startup

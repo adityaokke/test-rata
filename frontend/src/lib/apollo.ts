@@ -1,47 +1,40 @@
-import {
-  ApolloClient,
-  InMemoryCache,
-  createHttpLink,
-  from,
-} from '@apollo/client'
-import { setContext } from '@apollo/client/link/context'
-import { onError } from '@apollo/client/link/error'
+import { ApolloClient, InMemoryCache, HttpLink, ApolloLink, ServerError } from '@apollo/client'
+import { SetContextLink } from '@apollo/client/link/context'
+import { ErrorLink } from '@apollo/client/link/error'
 
 function buildClient(uri: string) {
-  const httpLink = createHttpLink({ uri })
+  const httpLink = new HttpLink({ uri })
 
-  const authLink = setContext((_, { headers }) => {
+  // SetContextLink replaces deprecated setContext()
+  const authLink = new SetContextLink((prevContext) => {
     const token = localStorage.getItem('access_token')
     return {
       headers: {
-        ...headers,
+        ...prevContext.headers,
         ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
     }
   })
 
-  const errorLink = onError(({ graphQLErrors, networkError }) => {
-    graphQLErrors?.forEach(({ extensions }) => {
-      if (extensions?.code === 'UNAUTHORIZED') {
-        localStorage.removeItem('access_token')
-        localStorage.removeItem('user')
-        window.location.href = '/login'
-      }
-    })
-    if (networkError) console.error('[Network error]', networkError)
+  // ErrorLink replaces deprecated onError()
+  const errorLink = new ErrorLink(({ error }) => {
+    if (ServerError.is(error) && error.statusCode === 401) {
+      localStorage.removeItem('access_token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
+    }
   })
 
+  // ApolloLink.from replaces deprecated from() and concat()
   return new ApolloClient({
-    link: from([errorLink, authLink, httpLink]),
+    link: ApolloLink.from([errorLink, authLink, httpLink]),
     cache: new InMemoryCache(),
   })
 }
 
-// Two separate clients — one per service
-export const authClient = buildClient(
-  import.meta.env.VITE_AUTH_GRAPHQL_URL ?? 'http://localhost:3001/graphql',
+export const apolloClient = buildClient(
+  import.meta.env.VITE_GRAPHQL_URL ?? 'http://localhost:3000/graphql',
 )
 
-export const chatClient = buildClient(
-  import.meta.env.VITE_CHAT_GRAPHQL_URL ?? 'http://localhost:3002/graphql',
-)
+export const authClient = apolloClient
+export const chatClient = apolloClient

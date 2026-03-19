@@ -1,19 +1,8 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { io, type Socket } from 'socket.io-client'
+import type { IncomingMessage } from '../lib/types/Message'
 
 const CHAT_WS_URL = import.meta.env.VITE_CHAT_WS_URL ?? 'http://localhost:3002'
-
-interface IncomingMessage {
-  id:             string
-  roomId:         string
-  senderId:       string
-  content:        string | null
-  attachmentUrl:  string | null
-  attachmentType: string | null
-  sequenceNumber: number
-  status:         string
-  createdAt:      string
-}
 
 interface UseSocketOptions {
   roomId:  string

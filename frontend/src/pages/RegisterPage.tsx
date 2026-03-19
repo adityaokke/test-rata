@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client/react";
+import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "../components/ui/Input";
@@ -42,6 +42,7 @@ function validate(values: FormState): FormErrors {
 export function RegisterPage() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const apolloClient = useApolloClient();
 
   const [values, setValues] = useState<FormState>({
     email: "",
@@ -54,8 +55,9 @@ export function RegisterPage() {
   const [registerMutation, { loading }] = useMutation<RegisterResult>(
     REGISTER_MUTATION,
     {
-      onCompleted(data) {
+      onCompleted: async (data) => {
         login(data.register.accessToken, data.register.user);
+        await apolloClient.resetStore(); // ← add this
         navigate("/rooms");
       },
       onError(err) {

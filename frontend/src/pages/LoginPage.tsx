@@ -1,4 +1,4 @@
-import { useMutation } from "@apollo/client/react";
+import { useApolloClient, useMutation } from "@apollo/client/react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "../components/ui/Input";
@@ -32,25 +32,24 @@ function validate(values: FormState): FormErrors {
 }
 
 export function LoginPage() {
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuth()
+  const navigate = useNavigate()
+  const apolloClient = useApolloClient()
 
   const [values, setValues] = useState<FormState>({ email: "", password: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState("");
 
-  const [loginMutation, { loading }] = useMutation<LoginResult>(
-    LOGIN_MUTATION,
-    {
-      onCompleted(data) {
-        login(data.login.accessToken, data.login.user);
-        navigate("/rooms");
-      },
-      onError(err) {
-        setServerError(err.message);
-      },
+  const [loginMutation, { loading }] = useMutation<LoginResult>(LOGIN_MUTATION, {
+    onCompleted: async (data) => {
+      login(data.login.accessToken, data.login.user)
+      await apolloClient.resetStore()  // ← clears cache, re-reads token on next request
+      navigate('/rooms')
     },
-  );
+    onError(err) {
+      setServerError(err.message)
+    },
+  })
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;

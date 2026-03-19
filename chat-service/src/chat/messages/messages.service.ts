@@ -56,7 +56,7 @@ export class MessagesService {
 
     await this.queue.add(JOB_NAMES.SEND_MESSAGE, payload, {
       ...MESSAGE_JOB_OPTIONS,
-      jobId: `${input.roomId}:${input.idempotencyKey}`, // deduplicate at queue level too
+      jobId: `${input.roomId}-${input.idempotencyKey}`, // deduplicate at queue level too
     })
 
     this.logger.debug(`Queued message seq=${sequenceNumber} room=${input.roomId}`)
