@@ -22,6 +22,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   private readonly logger = new Logger(ChatGateway.name);
+  private readonly subscribedRooms = new Set<string>();
 
   // userId → socketId map for targeted delivery
   private readonly userSockets = new Map<string, string>();
@@ -29,30 +30,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   constructor(
     private readonly redis: RedisService,
     private readonly rooms: RoomsService,
-    private readonly jwt:     JwtService,     // ← inject
-    private readonly config:  ConfigService,  // ← inject
+    private readonly jwt: JwtService, // ← inject
+    private readonly config: ConfigService, // ← inject
   ) {}
 
   // ── Lifecycle ─────────────────────────────────────────────────
 
   async handleConnection(client: Socket) {
     try {
-      const token = client.handshake.auth?.token as string
+      const token = client.handshake.auth?.token as string;
       if (!token) {
-        client.disconnect()
-        return
+        client.disconnect();
+        return;
       }
 
       const payload = this.jwt.verify<{ sub: string; email: string }>(token, {
         secret: this.config.get<string>('jwt.secret'),
-      })
+      });
 
       // Attach user to socket for use in event handlers
-      client.data.user = payload
-      this.logger.debug(`User ${payload.sub} connected`)
+      client.data.user = payload;
+      this.logger.debug(`User ${payload.sub} connected`);
     } catch {
       // Invalid or expired token — disconnect immediately
-      client.disconnect()
+      client.disconnect();
     }
   }
 
@@ -72,20 +73,21 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { roomId: string },
   ) {
-    const user = client.data.user
+    const user = client.data.user;
     if (!user) {
-      client.disconnect()
-      return { success: false, error: 'Unauthorized' }
+      client.disconnect();
+      return { success: false, error: 'Unauthorized' };
     }
 
     try {
       // Use userId from JWT, not from client payload
-      await this.rooms.assertMember(data.roomId, user.sub)
-      client.join(`room:${data.roomId}`)
-      await this.redis.setOnline(user.sub)
-      return { success: true }
+      await this.rooms.assertMember(data.roomId, user.sub);
+      client.join(`room:${data.roomId}`);
+      await this.redis.setOnline(user.sub);
+      await this.subscribeToRoom(data.roomId);
+      return { success: true };
     } catch {
-      return { success: false, error: 'Access denied' }
+      return { success: false, error: 'Access denied' };
     }
   }
 
@@ -103,6 +105,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   // emits to the correct Socket.IO room.
 
   async subscribeToRoom(roomId: string) {
+    if (this.subscribedRooms.has(roomId)) return;
+    this.subscribedRooms.add(roomId);
+    
     await this.redis.subscribe(`room:${roomId}`, (rawMessage) => {
       try {
         const message = JSON.parse(rawMessage);

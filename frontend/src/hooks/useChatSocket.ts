@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from "react";
 import { io, type Socket } from "socket.io-client";
-import type { IncomingMessage } from "../lib/types/Message";
+import type { IncomingMessage } from "../types/socket.types";
 
 const CHAT_WS_URL = import.meta.env.VITE_CHAT_WS_URL ?? "http://localhost:3002";
 

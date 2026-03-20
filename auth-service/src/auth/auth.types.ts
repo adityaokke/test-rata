@@ -56,7 +56,7 @@ export class RegisterInput {
   password: string;
 
   @Field(() => UserRole, { nullable: true })
-  role: UserRole;
+  role?: UserRole;
 }
 
 @InputType()

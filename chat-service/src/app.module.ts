@@ -15,6 +15,7 @@ import { PrismaModule } from './common/prisma/prisma.module';
 import configuration from './config/configuration';
 import { BullModule } from '@nestjs/bullmq';
 import { RedisModule } from './common/redis/redis.module';
+import { UploadController } from './upload/upload.controller';
 
 @Module({
   imports: [
@@ -52,7 +53,7 @@ import { RedisModule } from './common/redis/redis.module';
     RedisModule,
     ChatModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UploadController],
   providers: [AppService],
 })
 export class AppModule {}
