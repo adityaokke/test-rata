@@ -1,13 +1,12 @@
 import { useMutation, useQuery } from "@apollo/client/react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/auth-context";
 import { useChatClient } from "../App";
 import {
-  ADD_AGENT_MUTATION,
   FIND_OR_CREATE_ROOM_MUTATION,
   MY_ROOMS_QUERY,
 } from "../graphql/chat.queries";
-import { useState } from "react";
+import { useAuth } from "../lib/auth-context";
 
 interface RoomParticipant {
   id: string;
@@ -29,10 +28,6 @@ interface MyRoomsData {
 
 interface FindOrCreateRoomResult {
   findOrCreateRoom: { id: string };
-}
-
-interface AddAgentResult {
-  addAgent: { id: string; userId: string; role: string };
 }
 
 export function RoomsPage() {
@@ -63,7 +58,7 @@ export function RoomsPage() {
   function handleStartChat(e: React.FormEvent) {
     e.preventDefault();
     if (!otherUserId.trim()) return;
-    findOrCreateRoom({ variables: { otherUserId: otherUserId.trim() } })
+    findOrCreateRoom({ variables: { otherUserId: otherUserId.trim() } });
   }
 
   function handleLogout() {
@@ -97,12 +92,14 @@ export function RoomsPage() {
           <span className="text-xs text-ink-muted font-mono">
             {user?.email}
           </span>
-          <button
-            onClick={() => setShowNewChat(true)}
-            className="text-xs bg-accent text-surface px-3 py-1.5 rounded-lg font-medium hover:bg-accent-dim transition-colors"
-          >
-            + New Chat
-          </button>
+          {user?.role === "AGENT" && (
+            <button
+              onClick={() => setShowNewChat(true)}
+              className="text-xs bg-accent text-surface px-3 py-1.5 rounded-lg font-medium hover:bg-accent-dim transition-colors"
+            >
+              + New Chat
+            </button>
+          )}
           <button onClick={handleLogout} className="btn-ghost text-xs">
             Sign out
           </button>

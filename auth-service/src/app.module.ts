@@ -9,7 +9,6 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './common/prisma/prisma.module';
 import configuration from './config/configuration';
-import { UsersModule } from './users/users.module';
 import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
 
 @Module({
@@ -26,16 +25,6 @@ import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace
       context: ({ req }: { req: Request }) => ({ req }),
       plugins: [ApolloServerPluginInlineTrace()],
     }),
-    // GraphQLModule.forRootAsync<ApolloDriverConfig>({
-    //   driver: ApolloDriver,
-    //   inject: [ConfigService],
-    //   useFactory: (config: ConfigService) => ({
-    //     autoSchemaFile: true,
-    //     introspection: true,
-    //     context: ({ req }: { req: Request }) => ({ req }),
-    //     playground: config.get<string>('nodeEnv') !== 'production',
-    //   }),
-    // }),
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
@@ -48,7 +37,6 @@ import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace
     }),
     AuthModule,
     PrismaModule,
-    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

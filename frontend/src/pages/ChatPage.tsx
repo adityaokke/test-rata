@@ -3,7 +3,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import { useChatClient } from "../App";
-import { ADD_AGENT_MUTATION, MESSAGES_QUERY, SEND_MESSAGE_MUTATION } from "../graphql/chat.queries";
+import {
+  ADD_AGENT_MUTATION,
+  MESSAGES_QUERY,
+  SEND_MESSAGE_MUTATION,
+} from "../graphql/chat.queries";
 import { useChatSocket } from "../hooks/useChatSocket";
 import { useAuth } from "../lib/auth-context";
 import type { IncomingMessage } from "../lib/types/Message";
@@ -219,12 +223,14 @@ export function ChatPage() {
           </p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <button
-            onClick={() => setShowAddAgent(true)}
-            className="text-xs border border-zinc-700 text-ink-muted px-3 py-1.5 rounded-lg hover:border-zinc-600 hover:text-ink transition-colors"
-          >
-            + Add Agent
-          </button>
+          {user?.role === "AGENT" && (
+            <button
+              onClick={() => setShowAddAgent(true)}
+              className="text-xs border border-zinc-700 text-ink-muted px-3 py-1.5 rounded-lg hover:border-zinc-600 hover:text-ink transition-colors"
+            >
+              + Add Agent
+            </button>
+          )}
         </div>
       </header>
 

@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterInput, LoginInput } from './auth.types';
 import { PrismaService } from 'src/common/prisma/prisma.service';
+import { UserRole } from 'src/generated/prisma/enums';
 
 const SALT_ROUNDS = 12;
 const MIN_PASSWORD_LENGTH = 8;
@@ -39,10 +40,11 @@ export class AuthService {
       data: {
         email: input.email,
         password: hashedPassword,
+        role: input.role ?? UserRole.CUSTOMER, // ← use provided role or default
       },
     });
 
-    const accessToken = this.signToken(user.id, user.email);
+    const accessToken = this.signToken(user.id, user.email, user.role);
     return { accessToken, user };
   }
 
@@ -61,7 +63,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const accessToken = this.signToken(user.id, user.email);
+    const accessToken = this.signToken(user.id, user.email, user.role);
     return { accessToken, user };
   }
 
@@ -83,7 +85,7 @@ export class AuthService {
     }
   }
 
-  private signToken(userId: string, email: string): string {
-    return this.jwt.sign({ sub: userId, email });
+  private signToken(userId: string, email: string, role: UserRole): string {
+    return this.jwt.sign({ sub: userId, email, role });
   }
 }

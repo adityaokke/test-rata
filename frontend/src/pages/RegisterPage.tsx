@@ -8,7 +8,12 @@ import { useAuth } from "../lib/auth-context";
 interface RegisterResult {
   register: {
     accessToken: string;
-    user: { id: string; email: string; createdAt: string };
+    user: {
+      id: string;
+      email: string;
+      role: "CUSTOMER" | "AGENT";
+      createdAt: string;
+    };
   };
 }
 
@@ -44,6 +49,7 @@ export function RegisterPage() {
   const { login } = useAuth();
   const apolloClient = useApolloClient();
 
+  const [role, setRole] = useState<"CUSTOMER" | "AGENT">("CUSTOMER");
   const [values, setValues] = useState<FormState>({
     email: "",
     password: "",
@@ -57,7 +63,7 @@ export function RegisterPage() {
     {
       onCompleted: async (data) => {
         login(data.register.accessToken, data.register.user);
-        await apolloClient.resetStore(); // ← add this
+        await apolloClient.resetStore(); // ← clears cache, re-reads token on next request
         navigate("/rooms");
       },
       onError(err) {
@@ -82,7 +88,7 @@ export function RegisterPage() {
     }
     registerMutation({
       variables: {
-        input: { email: values.email, password: values.password },
+        input: { email: values.email, password: values.password, role },
       },
     });
   }
@@ -143,6 +149,27 @@ export function RegisterPage() {
               <p className="text-sm text-danger">{serverError}</p>
             </div>
           )}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs font-medium text-ink-muted uppercase tracking-wider">
+              I am a
+            </label>
+            <div className="flex gap-2">
+              {(["CUSTOMER", "AGENT"] as const).map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRole(r)}
+                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium border transition-colors ${
+                    role === r
+                      ? "bg-accent text-surface border-accent"
+                      : "border-zinc-700 text-ink-muted hover:border-zinc-600"
+                  }`}
+                >
+                  {r === "CUSTOMER" ? "Customer" : "Agent"}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <button type="submit" className="btn-primary mt-2" disabled={loading}>
             {loading ? (

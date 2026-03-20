@@ -8,7 +8,12 @@ import { useAuth } from "../lib/auth-context";
 interface LoginResult {
   login: {
     accessToken: string;
-    user: { id: string; email: string; createdAt: string };
+    user: {
+      id: string;
+      email: string;
+      role: "CUSTOMER" | "AGENT";
+      createdAt: string;
+    };
   };
 }
 
@@ -32,24 +37,27 @@ function validate(values: FormState): FormErrors {
 }
 
 export function LoginPage() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const apolloClient = useApolloClient()
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const apolloClient = useApolloClient();
 
   const [values, setValues] = useState<FormState>({ email: "", password: "" });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState("");
 
-  const [loginMutation, { loading }] = useMutation<LoginResult>(LOGIN_MUTATION, {
-    onCompleted: async (data) => {
-      login(data.login.accessToken, data.login.user)
-      await apolloClient.resetStore()  // ← clears cache, re-reads token on next request
-      navigate('/rooms')
+  const [loginMutation, { loading }] = useMutation<LoginResult>(
+    LOGIN_MUTATION,
+    {
+      onCompleted: async (data) => {
+        login(data.login.accessToken, data.login.user);
+        await apolloClient.resetStore(); // ← clears cache, re-reads token on next request
+        navigate("/rooms");
+      },
+      onError(err) {
+        setServerError(err.message);
+      },
     },
-    onError(err) {
-      setServerError(err.message)
-    },
-  })
+  );
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const { name, value } = e.target;
