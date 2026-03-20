@@ -2,8 +2,14 @@
 FROM node:22-alpine AS builder
 
 WORKDIR /app
+
 COPY package*.json ./
 RUN npm ci
+
+COPY prisma ./prisma
+COPY prisma.config.ts ./
+RUN npx prisma generate --config prisma.config.ts
+
 COPY . .
 RUN npm run build
 
@@ -20,9 +26,13 @@ RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 COPY --chown=appuser:appgroup package*.json ./
 RUN npm ci --omit=dev
 
+COPY --chown=appuser:appgroup --from=builder /app/src/generated ./src/generated
 COPY --chown=appuser:appgroup --from=builder /app/dist ./dist
+COPY --chown=appuser:appgroup prisma ./prisma
+COPY --chown=appuser:appgroup prisma.config.ts ./
 
 USER appuser
 
-EXPOSE 3000
-CMD ["node", "dist/main"]
+EXPOSE 3001
+
+CMD ["sh", "-c", "npx prisma migrate deploy --config prisma.config.ts && node dist/main"]
