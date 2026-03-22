@@ -45,6 +45,6 @@ export interface MyRoomsData {
   myRooms: ChatRoom[];
 }
 
-export interface FindOrCreateRoomResult {
-  findOrCreateRoom: { id: string };
+export interface CreateRoomResult {
+  createRoom: { id: string };
 }

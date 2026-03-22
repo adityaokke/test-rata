@@ -21,7 +21,7 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`Chat Service running on port ${port}`);
 }
-bootstrap();
+void bootstrap();
 process.on('uncaughtException', (err) => {
   console.error('Full error:', err);
 });

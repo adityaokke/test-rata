@@ -15,23 +15,6 @@ volumes:
   redis_data:
 
 services:
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: crm-frontend
-    restart: unless-stopped
-    ports:
-      - "5173:80"
-    environment:
-      VITE_GRAPHQL_URL: http://localhost:3000/graphql
-      VITE_CHAT_WS_URL: http://localhost:3002
-      VITE_CHAT_SERVICE_URL: http://localhost:3002
-    depends_on:
-      gateway:
-        condition: service_healthy
-    networks:
-      - crm-network
   # ── PostgreSQL — Auth ──────────────────────────────────────
   postgres-auth:
     image: postgres:16-alpine
@@ -128,15 +111,16 @@ services:
     ports:
       - "3002:3002"
     environment:
-      NODE_ENV:         production
-      PORT:             3002
-      FRONTEND_URL:     ${FRONTEND_URL:-http://localhost:5173}
-      DATABASE_URL:     postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-chat:5432/${POSTGRES_CHAT_DB:-chat_db}
-      REDIS_HOST:       redis
-      REDIS_PORT:       6379
-      JWT_SECRET:       ${JWT_SECRET:-change-me-in-production}
-      JWT_EXPIRES_IN:   ${JWT_EXPIRES_IN:-7d}
-      AUTH_SERVICE_URL: http://auth-service:3001/graphql
+      NODE_ENV:               production
+      PORT:                   3002
+      FRONTEND_URL:           ${FRONTEND_URL:-http://localhost:5173}
+      DATABASE_URL:           postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres-chat:5432/${POSTGRES_CHAT_DB:-chat_db}
+      REDIS_HOST:             redis
+      REDIS_PORT:             6379
+      JWT_SECRET:             ${JWT_SECRET:-change-me-in-production}
+      JWT_EXPIRES_IN:         ${JWT_EXPIRES_IN:-7d}
+      AUTH_SERVICE_URL:       http://auth-service:3001/graphql
+      AUTH_SERVICE_BASE_URL:  http://auth-service:3001
     depends_on:
       postgres-chat:
         condition: service_healthy
@@ -179,3 +163,23 @@ services:
       interval: 15s
       timeout: 5s
       retries: 3
+      start_period: 60s
+
+  # ── Frontend ───────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: crm-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    environment:
+      VITE_GRAPHQL_URL: http://localhost:3000/graphql
+      VITE_CHAT_WS_URL: ws://localhost:3002
+      VITE_CHAT_SERVICE_URL: http://localhost:3002
+    depends_on:
+      gateway:
+        condition: service_healthy
+    networks:
+      - crm-network

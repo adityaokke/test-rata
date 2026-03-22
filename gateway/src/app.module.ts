@@ -1,25 +1,27 @@
-import 'dotenv/config'
-import { Module } from '@nestjs/common'
-import { ConfigModule, ConfigService } from '@nestjs/config'
-import { GraphQLModule } from '@nestjs/graphql'
-import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo'
+import 'dotenv/config';
+import { Module } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloGatewayDriver, ApolloGatewayDriverConfig } from '@nestjs/apollo';
 import {
   IntrospectAndCompose,
   RemoteGraphQLDataSource,
   type GraphQLDataSourceProcessOptions,
-} from '@apollo/gateway'
-import configuration from './config/configuration'
+} from '@apollo/gateway';
+import configuration from './config/configuration';
 
 // ── Auth forwarding datasource ─────────────────────────────────
 // Passes the Authorization header from the incoming request
 // down to each subgraph so JWT validation works per-service.
 class AuthenticatedDataSource extends RemoteGraphQLDataSource {
   willSendRequest(options: GraphQLDataSourceProcessOptions) {
-    const context = options.context as { req?: { headers?: Record<string, string> } }
-    const token = context.req?.headers?.authorization
+    const context = options.context as {
+      req?: { headers?: Record<string, string> };
+    };
+    const token = context.req?.headers?.authorization;
 
     if (token && options.request.http) {
-      options.request.http.headers.set('authorization', token)
+      options.request.http.headers.set('authorization', token);
     }
   }
 }
@@ -51,17 +53,17 @@ class AuthenticatedDataSource extends RemoteGraphQLDataSource {
             subgraphs: [
               {
                 name: 'auth',
-                url:  config.get<string>('services.auth'),
+                url: config.get<string>('services.auth'),
               },
               {
                 name: 'chat',
-                url:  config.get<string>('services.chat'),
+                url: config.get<string>('services.chat'),
               },
             ],
           }),
           // Use our custom datasource that forwards the auth header
           buildService({ url }) {
-            return new AuthenticatedDataSource({ url })
+            return new AuthenticatedDataSource({ url });
           },
         },
       }),

@@ -16,18 +16,14 @@ export class AuthResolver {
   @Mutation(() => AuthPayload, {
     description: 'Register a new user. Returns JWT + user info.',
   })
-  async register(
-    @Args('input') input: RegisterInput,
-  ): Promise<AuthPayload> {
+  async register(@Args('input') input: RegisterInput): Promise<AuthPayload> {
     return this.authService.register(input);
   }
 
   @Mutation(() => AuthPayload, {
     description: 'Login with email & password. Returns JWT + user info.',
   })
-  async login(
-    @Args('input') input: LoginInput,
-  ): Promise<AuthPayload> {
+  async login(@Args('input') input: LoginInput): Promise<AuthPayload> {
     return this.authService.login(input);
   }
 

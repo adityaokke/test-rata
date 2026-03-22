@@ -61,18 +61,15 @@
         "${workspaceFolder}/chat-service/node_modules/**"
       ]
     }
-    // {
-    //   "name": "Auth Service — attach",
-    //   "type": "node",
-    //   "request": "attach",
-    //   "port": 9229,
-    //   "restart": true,
-    //   "sourceMaps": true,
-    //   "remoteRoot": "${workspaceFolder}",
-    //   "skipFiles": [
-    //     "<node_internals>/**",
-    //     "${workspaceFolder}/node_modules/**"
-    //   ]
-    // }
+  ],
+  "compounds": [
+    {
+      "name": "All Services — debug",
+      "configurations": [
+        "Auth Service — debug",
+        "Chat Service — debug"
+      ],
+      "stopAll": true,
+    }
   ]
 }

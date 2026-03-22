@@ -17,8 +17,8 @@ export const MY_ROOMS_QUERY = gql`
 `
 
 export const FIND_OR_CREATE_ROOM_MUTATION = gql`
-  mutation FindOrCreateRoom($otherUserId: String!) {
-    findOrCreateRoom(otherUserId: $otherUserId) {
+  mutation CreateRoom($otherUserId: String!) {
+    createRoom(otherUserId: $otherUserId) {
       id
       customerId
       participants {

@@ -1,18 +1,22 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import {
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConflictException, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import * as bcrypt from 'bcrypt';
-import { AuthService } from './auth.service';
 import { PrismaService } from 'src/common/prisma/prisma.service';
 import { UserRole } from 'src/generated/prisma/enums';
+import { AuthService } from './auth.service';
 
 // ── Mocks ─────────────────────────────────────────────────────
 
 const mockUser = {
-  id:        'uuid-1234',
-  email:     'test@example.com',
-  password:  '$2b$12$hashedpassword',
-  role:      UserRole.CUSTOMER,  // ← add role
+  id: 'uuid-1234',
+  email: 'test@example.com',
+  password: '$2b$12$hashedpassword',
+  role: UserRole.CUSTOMER, // ← add role
   createdAt: new Date('2024-01-01'),
   updatedAt: new Date('2024-01-01'),
 };
@@ -20,12 +24,12 @@ const mockUser = {
 const mockPrisma = {
   user: {
     findUnique: jest.fn(),
-    create:     jest.fn(),
+    create: jest.fn(),
   },
 };
 
 const mockJwt = {
-  sign:   jest.fn().mockReturnValue('signed.jwt.token'),
+  sign: jest.fn().mockReturnValue('signed.jwt.token'),
   verify: jest.fn(),
 };
 
@@ -39,7 +43,7 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: PrismaService, useValue: mockPrisma },
-        { provide: JwtService,    useValue: mockJwt },
+        { provide: JwtService, useValue: mockJwt },
       ],
     }).compile();
 
@@ -55,7 +59,7 @@ describe('AuthService', () => {
       mockPrisma.user.create.mockResolvedValue(mockUser);
 
       const result = await service.register({
-        email:    'test@example.com',
+        email: 'test@example.com',
         password: 'securepassword123',
       });
 
@@ -68,21 +72,24 @@ describe('AuthService', () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue(mockUser);
 
-      await service.register({ email: 'a@b.com', password: 'securepassword123' });
+      await service.register({
+        email: 'a@b.com',
+        password: 'securepassword123',
+      });
 
       const createCall = mockPrisma.user.create.mock.calls[0][0];
       expect(createCall.data.role).toBe(UserRole.CUSTOMER);
     });
 
     it('creates a user with AGENT role when provided', async () => {
-      const agentUser = { ...mockUser, role: UserRole.AGENT }
+      const agentUser = { ...mockUser, role: UserRole.AGENT };
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue(agentUser);
 
       const result = await service.register({
-        email:    'agent@example.com',
+        email: 'agent@example.com',
         password: 'securepassword123',
-        role:     UserRole.AGENT,
+        role: UserRole.AGENT,
       });
 
       const createCall = mockPrisma.user.create.mock.calls[0][0];
@@ -94,20 +101,28 @@ describe('AuthService', () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue(mockUser);
 
-      await service.register({ email: 'a@b.com', password: 'securepassword123' });
+      await service.register({
+        email: 'a@b.com',
+        password: 'securepassword123',
+      });
 
       const createCall = mockPrisma.user.create.mock.calls[0][0];
       const storedPassword: string = createCall.data.password;
 
       expect(storedPassword).not.toBe('securepassword123');
-      expect(await bcrypt.compare('securepassword123', storedPassword)).toBe(true);
+      expect(await bcrypt.compare('securepassword123', storedPassword)).toBe(
+        true,
+      );
     });
 
     it('includes role in the signed JWT', async () => {
       mockPrisma.user.findUnique.mockResolvedValue(null);
       mockPrisma.user.create.mockResolvedValue(mockUser);
 
-      await service.register({ email: 'a@b.com', password: 'securepassword123' });
+      await service.register({
+        email: 'a@b.com',
+        password: 'securepassword123',
+      });
 
       expect(mockJwt.sign).toHaveBeenCalledWith(
         expect.objectContaining({ role: UserRole.CUSTOMER }),
@@ -118,7 +133,10 @@ describe('AuthService', () => {
       mockPrisma.user.findUnique.mockResolvedValue(mockUser);
 
       await expect(
-        service.register({ email: 'test@example.com', password: 'securepassword123' }),
+        service.register({
+          email: 'test@example.com',
+          password: 'securepassword123',
+        }),
       ).rejects.toThrow(ConflictException);
 
       expect(mockPrisma.user.create).not.toHaveBeenCalled();
@@ -144,7 +162,7 @@ describe('AuthService', () => {
       });
 
       const result = await service.login({
-        email:    'test@example.com',
+        email: 'test@example.com',
         password: 'correctpassword',
       });
 
@@ -159,7 +177,10 @@ describe('AuthService', () => {
         password: hashedPassword,
       });
 
-      await service.login({ email: 'test@example.com', password: 'correctpassword' });
+      await service.login({
+        email: 'test@example.com',
+        password: 'correctpassword',
+      });
 
       expect(mockJwt.sign).toHaveBeenCalledWith(
         expect.objectContaining({ role: UserRole.CUSTOMER }),
@@ -191,14 +212,24 @@ describe('AuthService', () => {
       let err1: Error | null = null;
       try {
         await service.login({ email: 'nobody@example.com', password: 'x' });
-      } catch (e) { err1 = e as Error }
+      } catch (e) {
+        err1 = e as Error;
+      }
 
       const hashedPassword = await bcrypt.hash('correctpassword', 12);
-      mockPrisma.user.findUnique.mockResolvedValue({ ...mockUser, password: hashedPassword });
+      mockPrisma.user.findUnique.mockResolvedValue({
+        ...mockUser,
+        password: hashedPassword,
+      });
       let err2: Error | null = null;
       try {
-        await service.login({ email: 'test@example.com', password: 'wrongpassword' });
-      } catch (e) { err2 = e as Error }
+        await service.login({
+          email: 'test@example.com',
+          password: 'wrongpassword',
+        });
+      } catch (e) {
+        err2 = e as Error;
+      }
 
       expect(err1?.message).toBe(err2?.message);
     });
@@ -209,9 +240,9 @@ describe('AuthService', () => {
   describe('validateToken', () => {
     it('returns { valid: true, user } for a valid token', async () => {
       mockJwt.verify.mockReturnValue({
-        sub:   mockUser.id,
+        sub: mockUser.id,
         email: mockUser.email,
-        role:  mockUser.role,   // ← add role to payload
+        role: mockUser.role, // ← add role to payload
       });
       mockPrisma.user.findUnique.mockResolvedValue(mockUser);
 
@@ -219,11 +250,13 @@ describe('AuthService', () => {
 
       expect(result.valid).toBe(true);
       expect(result.user?.email).toBe(mockUser.email);
-      expect(result.user?.role).toBe(UserRole.CUSTOMER);  // ← assert role
+      expect(result.user?.role).toBe(UserRole.CUSTOMER); // ← assert role
     });
 
     it('returns { valid: false } when token is expired/invalid', async () => {
-      mockJwt.verify.mockImplementation(() => { throw new Error('jwt expired') });
+      mockJwt.verify.mockImplementation(() => {
+        throw new Error('jwt expired');
+      });
 
       const result = await service.validateToken('expired.token');
 
@@ -233,13 +266,15 @@ describe('AuthService', () => {
 
     it('returns { valid: false } when user no longer exists', async () => {
       mockJwt.verify.mockReturnValue({
-        sub:   'deleted-user-id',
+        sub: 'deleted-user-id',
         email: 'gone@example.com',
-        role:  UserRole.CUSTOMER,
+        role: UserRole.CUSTOMER,
       });
       mockPrisma.user.findUnique.mockResolvedValue(null);
 
-      const result = await service.validateToken('valid.token.for.deleted.user');
+      const result = await service.validateToken(
+        'valid.token.for.deleted.user',
+      );
 
       expect(result.valid).toBe(false);
       expect(result.user).toBeUndefined();

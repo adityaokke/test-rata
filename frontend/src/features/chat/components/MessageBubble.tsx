@@ -13,7 +13,7 @@ function formatTime(iso: string) {
 }
 
 const CHAT_SERVICE_URL =
-  import.meta.env.VITE_CHAT_SERVICE_URL ?? "http://localhost:3002";
+  import.meta.env.VITE_CHAT_SERVICE_URL;
 
 export function MessageBubble({ msg, isMe }: MessageBubbleProps) {
   const isPending = msg.status === "PENDING";

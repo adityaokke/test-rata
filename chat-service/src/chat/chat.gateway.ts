@@ -12,7 +12,30 @@ import { Server, Socket } from 'socket.io';
 import { RedisService } from '../common/redis/redis.service';
 import { RoomsService } from './rooms/rooms.service';
 import { JwtService } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config/dist/config.service';
+import { ConfigService } from '@nestjs/config'; // ← fix import path
+
+// ── Types ─────────────────────────────────────────────────────
+
+interface JwtPayload {
+  sub: string;
+  email: string;
+  role: string;
+}
+
+interface SocketData {
+  user?: JwtPayload;
+}
+
+interface AuthenticatedSocket extends Socket {
+  data: SocketData;
+}
+
+interface RoomPayload {
+  event: string;
+  room: unknown;
+}
+
+// ── Gateway ───────────────────────────────────────────────────
 
 @WebSocketGateway({
   cors: { origin: process.env.FRONTEND_URL ?? 'http://localhost:5173' },
@@ -23,41 +46,38 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   private readonly logger = new Logger(ChatGateway.name);
   private readonly subscribedRooms = new Set<string>();
-
-  // userId → socketId map for targeted delivery
   private readonly userSockets = new Map<string, string>();
 
   constructor(
     private readonly redis: RedisService,
     private readonly rooms: RoomsService,
-    private readonly jwt: JwtService, // ← inject
-    private readonly config: ConfigService, // ← inject
+    private readonly jwt: JwtService,
+    private readonly config: ConfigService,
   ) {}
 
   // ── Lifecycle ─────────────────────────────────────────────────
 
-  async handleConnection(client: Socket) {
+  handleConnection(client: AuthenticatedSocket) {
+    // ← remove async, no await
     try {
-      const token = client.handshake.auth?.token as string;
+      const token = client.handshake.auth?.token as string | undefined;
       if (!token) {
         client.disconnect();
         return;
       }
 
-      const payload = this.jwt.verify<{ sub: string; email: string }>(token, {
+      const payload = this.jwt.verify<JwtPayload>(token, {
         secret: this.config.get<string>('jwt.secret'),
       });
 
-      // Attach user to socket for use in event handlers
       client.data.user = payload;
       this.logger.debug(`User ${payload.sub} connected`);
     } catch {
-      // Invalid or expired token — disconnect immediately
       client.disconnect();
     }
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: AuthenticatedSocket) {
     const userId = this.getUserId(client);
     if (userId) {
       this.userSockets.delete(userId);
@@ -67,10 +87,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // ── Events ────────────────────────────────────────────────────
 
-  // Client joins a room channel to receive messages
   @SubscribeMessage('join-room')
   async handleJoinRoom(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { roomId: string },
   ) {
     const user = client.data.user;
@@ -80,10 +99,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
-      // Use userId from JWT, not from client payload
       await this.rooms.assertMember(data.roomId, user.sub);
-      client.join(`room:${data.roomId}`);
-      await this.redis.setOnline(user.sub);
+      void client.join(`room:${data.roomId}`);
+      void this.redis.setOnline(user.sub);
       await this.subscribeToRoom(data.roomId);
       return { success: true };
     } catch {
@@ -93,25 +111,41 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('leave-room')
   handleLeaveRoom(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { roomId: string },
   ) {
-    client.leave(`room:${data.roomId}`);
+    void client.leave(`room:${data.roomId}`);
     return { success: true };
   }
 
-  // ── Broadcast (called by worker via Redis pub/sub) ────────────
-  // The worker publishes to Redis; the gateway subscribes and
-  // emits to the correct Socket.IO room.
+  @SubscribeMessage('subscribe-rooms')
+  async handleSubscribeRooms(@ConnectedSocket() client: AuthenticatedSocket) {
+    const user = client.data.user;
+    if (!user) return { success: false };
+
+    await this.redis.subscribe(`user:${user.sub}:rooms`, (rawMessage) => {
+      try {
+        const payload = JSON.parse(rawMessage) as RoomPayload;
+        client.emit('room-created', payload.room);
+      } catch (err) {
+        this.logger.error(`Failed to parse room event: ${err}`);
+      }
+    });
+
+    return { success: true };
+  }
+
+  // ── Broadcast ─────────────────────────────────────────────────
 
   async subscribeToRoom(roomId: string) {
     if (this.subscribedRooms.has(roomId)) return;
     this.subscribedRooms.add(roomId);
-    
+
     await this.redis.subscribe(`room:${roomId}`, (rawMessage) => {
       try {
-        const message = JSON.parse(rawMessage);
-        this.server.to(`room:${roomId}`).emit('new-message', message);
+        this.server
+          .to(`room:${roomId}`)
+          .emit('new-message', JSON.parse(rawMessage));
       } catch (err) {
         this.logger.error(`Failed to parse room message: ${err}`);
       }
@@ -120,7 +154,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // ── Helpers ───────────────────────────────────────────────────
 
-  private getUserId(client: Socket): string | undefined {
+  private getUserId(client: AuthenticatedSocket): string | undefined {
     for (const [userId, socketId] of this.userSockets.entries()) {
       if (socketId === client.id) return userId;
     }

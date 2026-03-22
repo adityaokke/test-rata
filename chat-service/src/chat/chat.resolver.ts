@@ -35,11 +35,11 @@ export class ChatResolver {
   }
 
   @Mutation(() => ChatRoomType)
-  async findOrCreateRoom(
+  async createRoom(
     @Args('otherUserId') otherUserId: string, // ← back to generic name
     @Context() ctx: GqlContext,
   ): Promise<ChatRoomType> {
-    return this.roomsService.findOrCreateRoom(ctx.req.user.sub, otherUserId);
+    return this.roomsService.createRoom(ctx.req.user.sub, otherUserId);
   }
 
   @Mutation(() => RoomParticipantType, {

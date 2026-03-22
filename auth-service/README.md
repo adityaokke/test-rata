@@ -96,7 +96,7 @@ npm run test:cov
 │       ├── guards/jwt-auth.guard.ts        # Reusable JwtAuthGuard for other services
 │       ├── decorators/current-user.decorator.ts
 │       ├── filters/gql-exception.filter.ts # Maps HTTP exceptions → clean GQL errors
-│       └── health.controller.ts    # GET /.well-known/health for Docker healthcheck
+│       └── health.controller.ts    # GET /health for Docker healthcheck
 ├── Dockerfile                      # Multi-stage build (builder → runner)
 ├── docker-compose.yml              # Auth service + postgres-auth + network
 └── .env.example

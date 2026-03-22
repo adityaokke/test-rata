@@ -12,7 +12,7 @@ interface MessageInputProps {
   // roomId:    string
 }
 
-const CHAT_SERVICE_URL = import.meta.env.VITE_CHAT_SERVICE_URL ?? 'http://localhost:3002'
+const CHAT_SERVICE_URL = import.meta.env.VITE_CHAT_SERVICE_URL
 
 export function MessageInput({ onSend, sending }: MessageInputProps) {
   const [text, setText]           = useState('')

@@ -4,7 +4,9 @@ import { GraphQLError } from 'graphql';
 
 @Catch()
 export class GqlHttpExceptionFilter implements GqlExceptionFilter {
-  catch(exception: unknown, _host: ArgumentsHost) {
+  catch(exception: unknown, host: ArgumentsHost) {
+    const contextType = host.getType();
+
     if (exception instanceof HttpException) {
       const response = exception.getResponse();
       const message =
@@ -17,8 +19,10 @@ export class GqlHttpExceptionFilter implements GqlExceptionFilter {
       });
     }
 
-    // Unknown errors — don't leak internals
+    // Extract useful info from host for debugging
+    console.error('[GqlExceptionFilter] context type:', contextType);
     console.error('[GqlExceptionFilter] Unhandled error:', exception);
+
     return new GraphQLError('Internal server error', {
       extensions: { code: 'INTERNAL_SERVER_ERROR' },
     });

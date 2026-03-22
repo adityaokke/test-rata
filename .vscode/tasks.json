@@ -1,0 +1,41 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ── Wait for Auth Service ──────────────────────────────
+    {
+      "label": "wait: auth-service",
+      "type": "shell",
+      "command": "until curl -sf http://localhost:3001/.well-known/health; do echo 'Waiting for auth-service...'; sleep 2; done; echo 'auth-service ready'",
+      "windows": {
+        "command": "powershell -Command \"while ($true) { try { $r = Invoke-WebRequest -Uri 'http://localhost:3001/.well-known/health' -UseBasicParsing -ErrorAction Stop; if ($r.StatusCode -eq 200) { Write-Host 'auth-service ready'; break } } catch { Write-Host 'Waiting for auth-service...'; Start-Sleep 2 } }\""
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    // ── Wait for Chat Service ──────────────────────────────
+    {
+      "label": "wait: chat-service",
+      "type": "shell",
+      "command": "until curl -sf http://localhost:3002/.well-known/health; do echo 'Waiting for chat-service...'; sleep 2; done; echo 'chat-service ready'",
+      "windows": {
+        "command": "powershell -Command \"while ($true) { try { $r = Invoke-WebRequest -Uri 'http://localhost:3002/.well-known/health' -UseBasicParsing -ErrorAction Stop; if ($r.StatusCode -eq 200) { Write-Host 'chat-service ready'; break } } catch { Write-Host 'Waiting for chat-service...'; Start-Sleep 2 } }\""
+      },
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    },
+    // ── Wait for both before gateway ───────────────────────
+    {
+      "label": "wait: all-subgraphs",
+      "dependsOn": ["wait: auth-service", "wait: chat-service"],
+      "dependsOrder": "parallel",
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared"
+      }
+    }
+  ]
+}

@@ -1,4 +1,8 @@
-import { ApolloDriver, ApolloDriverConfig, ApolloFederationDriver, ApolloFederationDriverConfig } from '@nestjs/apollo';
+import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
+import {
+  ApolloFederationDriver,
+  ApolloFederationDriverConfig,
+} from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -9,7 +13,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './common/prisma/prisma.module';
 import configuration from './config/configuration';
-import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -36,6 +40,7 @@ import { ApolloServerPluginInlineTrace } from '@apollo/server/plugin/inlineTrace
       }),
     }),
     AuthModule,
+    UsersModule,
     PrismaModule,
   ],
   controllers: [AppController],

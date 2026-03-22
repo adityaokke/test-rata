@@ -1,4 +1,4 @@
-import type { StringValue } from "ms";
+import type { StringValue } from 'ms';
 
 export default () => ({
   port: parseInt(process.env.PORT || '3001', 10),
