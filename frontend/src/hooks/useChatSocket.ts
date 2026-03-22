@@ -8,30 +8,50 @@ interface UseSocketOptions {
   roomId: string;
   userId: string;
   onMessage: (msg: IncomingMessage) => void;
+  onUnread?: (roomId: string) => void;
 }
 
-export function useChatSocket({ roomId, userId, onMessage }: UseSocketOptions) {
+export function useChatSocket({
+  roomId,
+  userId,
+  onMessage,
+  onUnread,
+}: UseSocketOptions) {
   const socketRef = useRef<Socket | null>(null);
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
+
+  const onUnreadRef = useRef(onUnread);
+  onUnreadRef.current = onUnread;
 
   useEffect(() => {
     const socket = io(`${CHAT_WS_URL}/chat`, {
       path: "/socket.io",
       transports: ["websocket"],
-      auth: {
-        token: localStorage.getItem("access_token"),
-      },
+      auth: { token: localStorage.getItem("access_token") },
     });
 
     socketRef.current = socket;
 
     socket.on("connect", () => {
-      socket.emit("join-room", { roomId, userId });
+      console.log("[Socket] connected, roomId:", roomId);
+      if (roomId) {
+        socket.emit("join-room", { roomId, userId });
+      } else {
+        console.log("[Socket] subscribing to all rooms");
+        socket.emit("subscribe-all-rooms", {}, (res: unknown) => {
+          console.log("[Socket] subscribe-all-rooms response:", res); // ← callback
+        });
+      }
     });
 
     socket.on("new-message", (msg: IncomingMessage) => {
-      onMessageRef.current(msg);
+      console.log("[Socket] new message", msg);
+      if (msg.roomId === roomId) {
+        onMessageRef.current(msg); // ← in this room, update chat
+      } else {
+        onUnreadRef.current?.(msg.roomId); // ← other room, increment badge
+      }
     });
 
     socket.on("disconnect", () => {
@@ -39,7 +59,7 @@ export function useChatSocket({ roomId, userId, onMessage }: UseSocketOptions) {
     });
 
     return () => {
-      socket.emit("leave-room", { roomId });
+      if (roomId) socket.emit("leave-room", { roomId });
       socket.disconnect();
     };
   }, [roomId, userId]);

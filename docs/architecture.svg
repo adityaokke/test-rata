@@ -1,0 +1,111 @@
+<svg width="100%" viewBox="0 0 680 740" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+    <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </marker>
+</defs>
+
+<!-- ── Row 1: Frontend x=190..490, y=20..72 ──────────────── -->
+<g >
+  <rect x="190" y="20" width="300" height="52" rx="8" stroke-width="0.5" style="fill:rgb(8, 80, 65);stroke:rgb(93, 202, 165);"/>
+  <text x="340" y="40" text-anchor="middle" dominant-baseline="central" style="fill:rgb(159, 225, 203);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Frontend</text>
+  <text x="340" y="58" text-anchor="middle" dominant-baseline="central" style="fill:rgb(93, 202, 165);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">React · Apollo · Socket.IO</text>
+</g>
+
+<!-- Frontend bottom → Gateway top -->
+<line x1="340" y1="72" x2="340" y2="136" stroke="#1D9E75" stroke-width="1" marker-end="url(#arrow)" fill="none"/>
+
+<!-- WS: Frontend right → right side → Chat Service top (bidirectional) -->
+<path d="M490 46 L610 46 L610 276" fill="none" stroke="#1D9E75" stroke-width="1" stroke-dasharray="5 3" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+<text x="618" y="172" text-anchor="start" dominant-baseline="central" style="fill:rgb(29,158,117);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">WS</text>
+
+<!-- ── Row 2: Gateway x=190..490, y=136..188 ─────────────── -->
+<g >
+  <rect x="190" y="136" width="300" height="52" rx="8" stroke-width="0.5" style="fill:rgb(60, 52, 137);stroke:rgb(175, 169, 236);"/>
+  <text x="340" y="156" text-anchor="middle" dominant-baseline="central" style="fill:rgb(206, 203, 246);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Gateway</text>
+  <text x="340" y="174" text-anchor="middle" dominant-baseline="central" style="fill:rgb(175, 169, 236);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">NestJS · Apollo Federation</text>
+</g>
+
+<!-- Gateway → Auth -->
+<path d="M250 188 L250 226 L150 226 L150 276" fill="none" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+<!-- Gateway → Chat -->
+<path d="M430 188 L430 226 L530 226 L530 276" fill="none" stroke="#534AB7" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── Row 3: Auth x=50..250 y=276..328, Chat x=430..630 y=276..328 ── -->
+<g >
+  <rect x="50" y="276" width="200" height="52" rx="8" stroke-width="0.5" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);"/>
+  <text x="150" y="296" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Auth service</text>
+  <text x="150" y="314" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133, 183, 235);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">JWT · register · login</text>
+</g>
+
+<g >
+  <rect x="430" y="276" width="200" height="52" rx="8" stroke-width="0.5" style="fill:rgb(12, 68, 124);stroke:rgb(133, 183, 235);"/>
+  <text x="530" y="296" text-anchor="middle" dominant-baseline="central" style="fill:rgb(181, 212, 244);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Chat service</text>
+  <text x="530" y="314" text-anchor="middle" dominant-baseline="central" style="fill:rgb(133, 183, 235);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">Rooms · messages · WS</text>
+</g>
+
+<!-- Role check: Auth right → Chat left -->
+<line x1="250" y1="302" x2="430" y2="302" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none"/>
+<text x="340" y="294" text-anchor="middle" style="fill:rgb(194,192,182);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">role check</text>
+
+<!-- Auth bottom → AuthDB top -->
+<line x1="150" y1="328" x2="150" y2="398" stroke="#185FA5" stroke-width="1" marker-end="url(#arrow)" fill="none"/>
+<!-- Chat bottom → Queue top -->
+<line x1="530" y1="328" x2="530" y2="398" stroke="#185FA5" stroke-width="1" marker-end="url(#arrow)" fill="none"/>
+
+<!-- ── Row 4: AuthDB x=50..250 y=398..450, Queue x=430..630 y=398..450 ── -->
+<g >
+  <rect x="50" y="398" width="200" height="52" rx="8" stroke-width="0.5" style="fill:rgb(39, 80, 10);stroke:rgb(151, 196, 89);"/>
+  <text x="150" y="418" text-anchor="middle" dominant-baseline="central" style="fill:rgb(192, 221, 151);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">PostgreSQL</text>
+  <text x="150" y="436" text-anchor="middle" dominant-baseline="central" style="fill:rgb(151, 196, 89);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">auth_db · users</text>
+</g>
+
+<g >
+  <rect x="430" y="398" width="200" height="52" rx="8" stroke-width="0.5" style="fill:rgb(113, 43, 19);stroke:rgb(240, 153, 123);"/>
+  <text x="530" y="418" text-anchor="middle" dominant-baseline="central" style="fill:rgb(245, 196, 179);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Message queue</text>
+  <text x="530" y="436" text-anchor="middle" dominant-baseline="central" style="fill:rgb(240, 153, 123);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">BullMQ · DLQ · retry</text>
+</g>
+
+<!-- Queue bottom → Worker top -->
+<line x1="530" y1="450" x2="530" y2="510" stroke="#993C1D" stroke-width="1" marker-end="url(#arrow)" fill="none"/>
+
+<!-- ── Row 5: Worker x=430..630 y=510..562 ───────────────── -->
+<g >
+  <rect x="430" y="510" width="200" height="52" rx="8" stroke-width="0.5" style="fill:rgb(68, 68, 65);stroke:rgb(180, 178, 169);"/>
+  <text x="530" y="530" text-anchor="middle" dominant-baseline="central" style="fill:rgb(211, 209, 199);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Message worker</text>
+  <text x="530" y="548" text-anchor="middle" dominant-baseline="central" style="fill:rgb(180, 178, 169);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">Consume · persist · emit</text>
+</g>
+
+<!-- Worker left → left → down → ChatDB top -->
+<path d="M430 536 L360 536 L360 608" fill="none" stroke="#5F5E5A" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- Worker right → right → down → Redis right -->
+<path d="M630 536 L655 536 L655 604 L625 604" fill="none" stroke="#5F5E5A" stroke-width="1" marker-end="url(#arrow)"/>
+
+<!-- ── Row 6 left: ChatDB x=180..400 y=608..660 ──────────── -->
+<g >
+  <rect x="180" y="608" width="220" height="52" rx="8" stroke-width="0.5" style="fill:rgb(39, 80, 10);stroke:rgb(151, 196, 89);"/>
+  <text x="290" y="628" text-anchor="middle" dominant-baseline="central" style="fill:rgb(192, 221, 151);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">PostgreSQL</text>
+  <text x="290" y="646" text-anchor="middle" dominant-baseline="central" style="fill:rgb(151, 196, 89);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">chat_db · rooms · messages</text>
+</g>
+
+<!-- ── Row 6 right: Redis x=430..625 y=578..630 ──────────── -->
+<g >
+  <rect x="430" y="578" width="195" height="52" rx="8" stroke-width="0.5" style="fill:rgb(99, 56, 6);stroke:rgb(239, 159, 39);"/>
+  <text x="527" y="598" text-anchor="middle" dominant-baseline="central" style="fill:rgb(250, 199, 117);font-size:14px;font-weight:500;font-family:ui-sans-serif,system-ui,sans-serif;">Redis</text>
+  <text x="527" y="616" text-anchor="middle" dominant-baseline="central" style="fill:rgb(239, 159, 39);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">seq counter · presence · cache</text>
+</g>
+
+<!-- Redis left → up → Chat Service bottom (pub/sub) -->
+<path d="M430 604 L410 604 L410 315 L430 315" fill="none" stroke="#BA7517" stroke-width="1" stroke-dasharray="5 3" marker-end="url(#arrow)"/>
+<text x="402" y="460" text-anchor="end" dominant-baseline="central" style="fill:rgb(186,117,23);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">pub/sub</text>
+
+<!-- ── Legend ──────────────────────────────────────────────── -->
+<rect x="20" y="668" width="210" height="56" rx="6" fill="none" stroke="rgba(222,220,209,0.15)" stroke-width="0.5"/>
+<text x="125" y="682" text-anchor="middle" dominant-baseline="central" style="fill:rgb(194,192,182);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">Legend</text>
+<line x1="36" y1="698" x2="72" y2="698" stroke="#534AB7" stroke-width="1.5" marker-end="url(#arrow)" fill="none"/>
+<text x="80" y="702" dominant-baseline="central" style="fill:rgb(194,192,182);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">HTTP / GraphQL</text>
+<line x1="36" y1="716" x2="72" y2="716" stroke="#BA7517" stroke-width="1.5" stroke-dasharray="4 3" marker-end="url(#arrow)" fill="none"/>
+<text x="80" y="720" dominant-baseline="central" style="fill:rgb(194,192,182);font-size:12px;font-family:ui-sans-serif,system-ui,sans-serif;">async / event</text>
+
+</svg>

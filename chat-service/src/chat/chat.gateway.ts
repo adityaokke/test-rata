@@ -135,6 +135,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { success: true };
   }
 
+  @SubscribeMessage('subscribe-all-rooms')
+  async handleSubscribeAllRooms(
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    const user = client.data.user;
+    if (!user) return { success: false };
+
+    const rooms = await this.rooms.listRooms(user.sub);
+
+    for (const room of rooms) {
+      client.join(`room:${room.id}`); // ← join Socket.IO room
+      await this.subscribeToRoom(room.id); // ← subscribe Redis channel
+    }
+
+    this.logger.debug(`User ${user.sub} subscribed to ${rooms.length} rooms`);
+    return { success: true };
+  }
+
   // ── Broadcast ─────────────────────────────────────────────────
 
   async subscribeToRoom(roomId: string) {

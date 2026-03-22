@@ -16,6 +16,8 @@ import type {
   RoomParticipant,
 } from "../types/chat.types";
 import { useRoomsSocket } from "../hooks/useRoomsSocket";
+import { useChatSocket } from "../hooks/useChatSocket";
+import { useUnread } from "../store/unread-context";
 
 export function RoomsPage() {
   const { user, logout } = useAuth();
@@ -25,10 +27,15 @@ export function RoomsPage() {
   const [showNewChat, setShowNewChat] = useState(false);
   const [otherUserId, setOtherUserId] = useState("");
 
-  const { data, loading, error, refetch } = useQuery<MyRoomsData>(MY_ROOMS_QUERY, {
-    client: chatClient,
-    fetchPolicy: 'cache-and-network',
-  })
+  const { unreadCounts, increment, clear } = useUnread();
+
+  const { data, loading, error, refetch } = useQuery<MyRoomsData>(
+    MY_ROOMS_QUERY,
+    {
+      client: chatClient,
+      fetchPolicy: "cache-and-network",
+    },
+  );
 
   // Refetch rooms list when new room is created
   const handleRoomCreated = useCallback(() => {
@@ -39,6 +46,18 @@ export function RoomsPage() {
     userId: user?.id ?? "",
     onRoomCreated: handleRoomCreated,
   });
+
+  useChatSocket({
+    roomId: "", // ← no active room on rooms page
+    userId: user?.id ?? "",
+    onMessage: () => {},
+    onUnread: increment, // ← increment when message arrives
+  });
+
+  function handleRoomClick(roomId: string) {
+    clear(roomId);
+    navigate(`/rooms/${roomId}`);
+  }
 
   const [createRoom, { loading: creating }] = useMutation<CreateRoomResult>(
     FIND_OR_CREATE_ROOM_MUTATION,
@@ -202,7 +221,7 @@ export function RoomsPage() {
           return (
             <button
               key={room.id}
-              onClick={() => navigate(`/rooms/${room.id}`)}
+              onClick={() => handleRoomClick(room.id)}
               className="card p-4 flex items-center gap-3 hover:border-zinc-700 hover:bg-surface-overlay transition-all duration-150 text-left w-full mb-1 animate-fade-up"
             >
               <div className="relative shrink-0">
@@ -211,16 +230,17 @@ export function RoomsPage() {
                     {initials}
                   </span>
                 </div>
-                {others.length > 1 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent text-surface text-[9px] font-mono flex items-center justify-center">
-                    {others.length}
+                {/* Unread badge */}
+                {unreadCounts[room.id] > 0 && (
+                  <span className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white text-[10px] flex items-center justify-center font-mono px-1">
+                    {unreadCounts[room.id]}
                   </span>
                 )}
               </div>
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <p className="text-sm font-medium text-ink truncate font-mono">
+                  <p className="text-sm font-medi um text-ink truncate font-mono">
                     {primary
                       ? `${primary.userId.slice(0, 8)}…`
                       : room.id.slice(0, 8)}
@@ -231,7 +251,7 @@ export function RoomsPage() {
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="text-xs text-ink-muted">
-                    {others.length} participant{others.length !== 1 ? "s" : ""}
+                    {others.length} agent{others.length !== 1 ? "s" : ""}
                   </span>
                   {others.map((p) => (
                     <span
